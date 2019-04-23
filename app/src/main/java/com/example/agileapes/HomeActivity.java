@@ -61,4 +61,9 @@ public class HomeActivity extends AppCompatActivity {
         Intent myIntent = new Intent(getBaseContext(), LearningActivity.class);
         startActivity(myIntent);
     }
+
+    public void launchMainScreen(View view) {
+        Intent myIntent = new Intent(getBaseContext(), MainActivity.class);
+        startActivity(myIntent);
+    }
 }

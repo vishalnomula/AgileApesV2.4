@@ -81,17 +81,21 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
  * Activity with a Mapbox map and recyclerview to view various locations
  */
 
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+//import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+
+//public class MapActivity extends AppCompatActivity implements
+//        LocationRecyclerViewAdapter.ClickListener, MapboxMap.OnMapClickListener, OnMapReadyCallback, PermissionsListener {
 
 public class MapActivity extends AppCompatActivity implements
-        LocationRecyclerViewAdapter.ClickListener, MapboxMap.OnMapClickListener, OnMapReadyCallback, PermissionsListener {
+        LocationRecyclerViewAdapter.ClickListener, MapboxMap.OnMapClickListener {
 
-    private FusedLocationProviderClient client;
+//    private FusedLocationProviderClient client;
 
-    private static final LatLngBounds LOCKED_MAP_CAMERA_BOUNDS = new LatLngBounds.Builder()
-            .include(new LatLng(-33.6442, 149.7833))
-            .include(new LatLng(-33.891,
-                    151.3279)).build();
+//    private static final LatLngBounds LOCKED_MAP_CAMERA_BOUNDS = new LatLngBounds.Builder()
+//            .include(new LatLng(-33, 150))
+//            .include(new LatLng(-34,
+//                    151)).build();
+    private static final LatLng MOCK_DEVICE_LOCATION_LAT_LNG = new LatLng(-33.917300, 151.231300);
     private static final int MAPBOX_LOGO_OPACITY = 75;
     private static final int CAMERA_MOVEMENT_SPEED_IN_MILSECS = 1200;
     private static final float NAVIGATION_LINE_WIDTH = 9;
@@ -108,6 +112,7 @@ public class MapActivity extends AppCompatActivity implements
     private CustomThemeManager customThemeManager;
     private LocationRecyclerViewAdapter styleRvAdapter;
     private int chosenTheme;
+    private String TAG = "MapActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,28 +132,28 @@ public class MapActivity extends AppCompatActivity implements
         TextView tvMapBananaNumber = findViewById(R.id.tvMapBananaNumber);
         tvMapBananaNumber.setText("" + Global.bananas);
 
-        client = LocationServices.getFusedLocationProviderClient(this);
-        if (ActivityCompat.checkSelfPermission(MapActivity.this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
-
-            return;
-        }
-        client.getLastLocation().addOnSuccessListener(MapActivity.this, new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-
-                if(location != null) {
-                    String string = location.toString();
-
-                    double lat = location.getLatitude();
-                    double lng = location.getLongitude();
-
-                    Global.deviceLatitude = lat;
-                    Global.deviceLongitude = lng;
-
-                }
-
-            }
-        });
+//        client = LocationServices.getFusedLocationProviderClient(this);
+//        if (ActivityCompat.checkSelfPermission(MapActivity.this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
+//
+//            return;
+//        }
+//        client.getLastLocation().addOnSuccessListener(MapActivity.this, new OnSuccessListener<Location>() {
+//            @Override
+//            public void onSuccess(Location location) {
+//
+//                if(location != null) {
+//                    String string = location.toString();
+//
+//                    double lat = location.getLatitude();
+//                    double lng = location.getLongitude();
+//
+//                    Global.deviceLatitude = lat;
+//                    Global.deviceLongitude = lng;
+//
+//                }
+//
+//            }
+//        });
 
         // Create a GeoJSON feature collection from the GeoJSON file in the assets folder.
         try {
@@ -167,13 +172,10 @@ public class MapActivity extends AppCompatActivity implements
         // Set up the Mapbox map
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
-
-    }
-
-    @Override
-        public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-            MapActivity.this.mapboxMap = mapboxMap;
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(@NonNull final MapboxMap mapboxMap) {
+//                MapActivity.this.mapboxMap = mapboxMap;
 
                 // Initialize the custom class that handles marker icon creation and map styling based on the selected theme
                 customThemeManager = new CustomThemeManager(chosenTheme, MapActivity.this);
@@ -182,14 +184,16 @@ public class MapActivity extends AppCompatActivity implements
                     @Override
                     public void onStyleLoaded(@NonNull Style style) {
 
-                        enableLocationComponent(style);
+                        MapActivity.this.mapboxMap = mapboxMap;
+
+//                        enableLocationComponent(style);
 
                         // Adjust the opacity of the Mapbox logo in the lower left hand corner of the map
                         ImageView logo = mapView.findViewById(R.id.logoView);
                         logo.setAlpha(MAPBOX_LOGO_OPACITY);
 
                         // Set bounds for the map camera so that the user can't pan the map outside of the NYC area
-                        mapboxMap.setLatLngBoundsForCameraTarget(LOCKED_MAP_CAMERA_BOUNDS);
+//                        mapboxMap.setLatLngBoundsForCameraTarget(LOCKED_MAP_CAMERA_BOUNDS);
 
                         // Set up the SymbolLayer which will show the icons for each store location
                         initStoreLocationIconSymbolLayer();
@@ -254,6 +258,8 @@ public class MapActivity extends AppCompatActivity implements
 
                             mapboxMap.addOnMapClickListener(MapActivity.this);
 
+//                            Toast.makeText(MapActivity.this, "Click on a card", Toast.LENGTH_SHORT).show();
+
                             // Show 3d buildings if the blue theme is being used
                             if (customThemeManager.getNavigationLineColor() == R.color.navigationRouteLine_blue) {
                                 showBuildingExtrusions();
@@ -264,57 +270,60 @@ public class MapActivity extends AppCompatActivity implements
                 });
 
             }
-
-    @SuppressWarnings( {"MissingPermission"})
-    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
-        // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-
-            // Get an instance of the component
-            LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-            // Activate with options
-            locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
-
-            // Enable to make component visible
-            locationComponent.setLocationComponentEnabled(true);
-
-            // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING);
-
-            // Set the component's render mode
-            locationComponent.setRenderMode(RenderMode.COMPASS);
-        } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(this);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        });
 
     }
 
-    @Override
-    public void onPermissionResult(boolean granted) {
-        if (granted) {
-            mapboxMap.getStyle(new Style.OnStyleLoaded() {
-                @Override
-                public void onStyleLoaded(@NonNull Style style) {
-                    enableLocationComponent(style);
-                }
-            });
-        } else {
+//    @SuppressWarnings( {"MissingPermission"})
+//    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
+//        // Check if permissions are enabled and if not request
+//        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+//
+//            // Get an instance of the component
+//            LocationComponent locationComponent = mapboxMap.getLocationComponent();
+//
+//            // Activate with options
+//            locationComponent.activateLocationComponent(
+//                    LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
+//
+//            // Enable to make component visible
+//            locationComponent.setLocationComponentEnabled(true);
+//
+//            // Set the component's camera mode
+//            locationComponent.setCameraMode(CameraMode.TRACKING);
+//
+//            // Set the component's render mode
+//            locationComponent.setRenderMode(RenderMode.COMPASS);
+//        } else {
+//            permissionsManager = new PermissionsManager(this);
+//            permissionsManager.requestLocationPermissions(this);
+//        }
+//    }
 
-            finish();
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//    }
+
+//    @Override
+//    public void onExplanationNeeded(List<String> permissionsToExplain) {
+//
+//    }
+
+//    @Override
+//    public void onPermissionResult(boolean granted) {
+//        if (granted) {
+//            mapboxMap.getStyle(new Style.OnStyleLoaded() {
+//                @Override
+//                public void onStyleLoaded(@NonNull Style style) {
+//                    enableLocationComponent(style);
+//                }
+//            });
+//        } else {
+//
+//            finish();
+//        }
+//    }
 
     private void showBuildingExtrusions() {
         // Use the Mapbox building plugin to display and customize the opacity/color of building extrusions
@@ -345,7 +354,7 @@ public class MapActivity extends AppCompatActivity implements
                     } else {
                         setSelected(i);
                     }
-                    if (selectedFeaturePoint.latitude() != Global.deviceLatitude) {
+                    if (selectedFeaturePoint.latitude() != MOCK_DEVICE_LOCATION_LAT_LNG.getLatitude()) {
                         for (int x = 0; x < featureCollection.features().size(); x++) {
 
                             if (listOfIndividualLocations.get(x).getLocation().getLatitude() == selectedFeaturePoint.latitude()) {
@@ -394,6 +403,7 @@ public class MapActivity extends AppCompatActivity implements
         // Reposition the map camera target to the selected marker
         if (selectedLocation != null) {
             repositionMapCamera(selectedLocationPoint);
+
         }
 
         // Check for an internet connection before making the call to Mapbox Directions API
@@ -510,8 +520,8 @@ public class MapActivity extends AppCompatActivity implements
     private void getInformationFromDirectionsApi(Point destinationPoint,
                                                  final boolean fromMarkerClick, @Nullable final Integer listIndex) {
         // Set up origin and destination coordinates for the call to the Mapbox Directions API
-        Point mockCurrentLocation = Point.fromLngLat(Global.deviceLongitude,
-                Global.deviceLatitude);
+        Point mockCurrentLocation = Point.fromLngLat(MOCK_DEVICE_LOCATION_LAT_LNG.getLongitude(),
+                MOCK_DEVICE_LOCATION_LAT_LNG.getLatitude());
 
         Point destinationMarker = Point.fromLngLat(destinationPoint.longitude(), destinationPoint.latitude());
 
@@ -576,7 +586,7 @@ public class MapActivity extends AppCompatActivity implements
             style.addImage("mock-device-location-icon-id", customThemeManager.getMockLocationIcon());
 
             style.addSource(new GeoJsonSource("mock-device-location-source-id", Feature.fromGeometry(
-                    Point.fromLngLat(Global.deviceLongitude, Global.deviceLatitude))));
+                    Point.fromLngLat(MOCK_DEVICE_LOCATION_LAT_LNG.getLongitude(), MOCK_DEVICE_LOCATION_LAT_LNG.getLatitude()))));
 
             style.addLayer(new SymbolLayer("mock-device-location-layer-id",
                     "mock-device-location-source-id").withProperties(
@@ -659,7 +669,7 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     @Override
-    @SuppressWarnings( {"MissingPermission"})
+//    @SuppressWarnings( {"MissingPermission"})
     protected void onStart() {
         super.onStart();
         mapView.onStart();

@@ -29,10 +29,10 @@
         android:layout_marginLeft="0dp"
         android:layout_marginRight="0dp"
         android:layout_marginTop="0dp"
-        mapbox:mapbox_cameraTargetLat="-33.8688"
-        mapbox:mapbox_cameraTargetLng="151.2093"
+        mapbox:mapbox_cameraTargetLat="-33.917300"
+        mapbox:mapbox_cameraTargetLng="151.231300"
         mapbox:mapbox_cameraTilt="48"
-        mapbox:mapbox_cameraZoom="13"
+        mapbox:mapbox_cameraZoom="12"
         mapbox:mapbox_cameraZoomMin="10"
         mapbox:mapbox_uiAttribution="false">
 

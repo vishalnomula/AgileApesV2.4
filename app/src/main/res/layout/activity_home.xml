@@ -8,6 +8,18 @@
     tools:context=".HomeActivity">
 
     <ImageButton
+        android:id="@+id/btHomeArrowBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:onClick="launchMainScreen"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tvSettingsSettings"
+        app:srcCompat="@drawable/arrowback" />
+
+    <ImageButton
         android:id="@+id/btHomeGrocery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
